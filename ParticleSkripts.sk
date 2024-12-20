@@ -1,0 +1,376 @@
+
+options:
+    pamount: 3
+    pd: 0
+on load:
+    set {alt-particles::*} to ("dust", "block_crumble", "block", "block_marker", "dust_color_transition", "entity_effect", "falling_dust", "item", "sculk_charge", "shriek", "trail", and "vibration")
+
+function Bolt(l: location, p: particle, d: number, vertices: number, density: number, a: number, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+    set {_l2} to location {_d} meters infront of {_l}
+    set {_v} to vector between {_l} and {_l2}
+    if {_r} != vector(0,0,0):
+        set {_v} to {_r}
+    set standard length of {_v} to 1
+    set {_loc} to {_l}
+    set {_vp} to {_v}
+    add 90 to pitch of {_vp}
+    set {_vp2} to {_vp}
+    rotate {_vp2} around {_v} by 90
+
+    set {_n} to 0
+    set {_list::0} to {_l}
+    set {_list::%{_vertices}+1%} to {_l2}
+    while {_n} < {_vertices}:
+        set {_dh} to random number between -1 * {_a} and {_a}
+        set {_dv} to random number between -1 * {_a} and {_a}
+
+        set {_x} to {_vp} * {_dh}
+        set {_y} to {_vp2} * {_dv}
+
+        set {_lt} to location {_n}*{_d}/{_vertices} meters infront of {_l}
+        set {_lt} to {_lt} ~ ({_x} + {_y})
+        set {_list::%({_n}+1)%} to {_lt}
+        add 1 to {_n}
+
+    set {_n} to 0
+    loop {_list::*}:
+        if {_delay} != 0:
+            wait ("%{_delay}% seconds" parsed as a timespan)
+        set {_v5} to vector between {_list::%{_n}%} and {_list::%({_n}+1)%}
+        set {_dis} to distance between {_list::%{_n}%} and {_list::%{_n}+1%}
+        Line({_list::%({_n})%}, {_p}, {_dis}, {_density}, {_v5}, 0, {_do})
+        add 1 to {_n}
+function Circle(l: location, p: particle, radius: number, density: number, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+    set {_pivot} to location 1 meter infront of {_l}
+    set {_v} to vector between {_l} and {_pivot}
+    if {_r} != vector(0,0,0):
+        set {_v} to {_r}
+    set {_perpendicular} to {_v}
+    add -90 to pitch of {_perpendicular}
+
+    set standard length of {_v} to 1
+    set standard length of {_perpendicular} to {_radius}
+
+    set {_n} to 0
+    while {_n} < (18/{_density}):
+        if {_delay} != 0:
+            wait ("%{_delay}% seconds" parsed as a timespan)
+        set {_delta} to ((360/(18/{_density})))
+        rotate {_perpendicular} around {_v} by {_delta}
+        set {_loc} to {_l} ~ {_perpendicular}
+        broadcast 1
+        if {alt-particles::*} contains "%{_p}%":
+            broadcast 2
+            make {@pamount} of {_p} using {_do} at {_loc} with extra {@pd} with force
+        else:
+            make {@pamount} of {_p} at {_loc} with extra {@pd} with force
+        add 1 to {_n}
+
+
+function CircleF(l: location, cf: objects, p: objects, radius: number, density: number, theta: number, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+
+    set {_pivot} to location 1 meter infront of {_l}
+    set {_v} to vector between {_l} and {_pivot}
+    if {_r} != vector(0,0,0):
+        set {_v} to {_r}
+    set {_perpendicular} to {_v}
+    add -90 to pitch of {_perpendicular}
+
+    set standard length of {_v} to 1
+    set {_perpendicular} to {_perpendicular} * {_radius}
+    set {_n} to 0
+    while {_n} < (18/{_density}):
+        if {_delay} != 0:
+            wait ("%{_delay}% seconds" parsed as a timespan)
+        set {_delta} to ((360/(18/{_density})))
+
+
+        # Vector Transformations
+        rotate {_perpendicular} around {_v} by {_delta}
+        set {_loc} to {_l} ~ {_perpendicular}
+
+        set pitch of {_loc} to pitch of {_perpendicular}
+        set yaw of {_loc} to yaw of {_perpendicular}
+
+        # Substitute for the particle
+        set {_na} to 0
+        loop {_cf::*}:
+            CallComposite(loop-value, {_p::*}, {_loc}, {_delay}, {_do})
+            add 1 to {_na} 
+        # Substite for the particle
+        add 1 to {_n}
+
+function CircleFS(l: location, cf: objects, p: objects, radius: number, density: number, theta: number, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+    set {_pivot} to location 1 meter infront of {_l}
+    set {_v} to vector between {_l} and {_pivot}
+    if {_r} != vector(0,0,0):
+        set {_v} to {_r}
+    set {_perpendicular} to {_v}
+    add -90 to pitch of {_perpendicular}
+    add {_theta} to yaw of {_perpendicular}
+
+    set standard length of {_v} to 1
+    set standard length of {_perpendicular} to 1
+    set {_perpendicular} to {_perpendicular} * {_radius}
+    set {_n} to 0
+    while {_n} < (18/{_density}):
+        if {_delay} != 0:
+            wait ("%{_delay}% seconds" parsed as a timespan)
+        set {_delta} to ((360/(18/{_density})))
+        rotate {_perpendicular} around {_v} by {_delta}
+        set {_loc} to {_l} ~ {_perpendicular}
+        set {_na} to 0
+        set yaw of {_loc} to yaw of {_perpendicular} - 45
+        set pitch of {_loc} to pitch of {_perpendicular} - 45
+        # Substitute for the particle
+        loop {_cf::*}:
+            CallComposite(loop-value, {_p::*}, {_loc}, {_delay}, {_do})
+            add 1 to {_na}
+        # Substite for the particle
+        add 1 to {_n}
+
+function Helix(l: location, p: particle, d: number, period: number, a: number, density: number, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+    set {_l2} to location {_d} meters infront of {_l}
+    set {_v} to vector between {_l} and {_l2}
+    if {_r} != vector(0,0,0):
+        set {_v} to {_r}
+    set standard length of {_v} to 1
+    set {_vp} to vector {_v}
+    set {_vp2} to {_v}
+    subtract 90 from pitch of {_vp}
+    set {_vp2} to {_vp}
+    rotate {_vp2} around {_v} by 90
+    set standard length of {_vp} to 1
+    set standard length of {_vp2} to 1
+    if {_a} < 0:
+        rotate {_vp} around {_v} by -180
+        rotate {_vp2} around {_v} by -180
+    if {_vertical} != true:
+        rotate {_vp} around {_v} by -90
+        rotate {_vp2} around {_v} by -90
+    loop ({_d}/{_density}) times:
+        if {_delay} != 0:
+            wait ("%{_delay}% seconds" parsed as a timespan)
+        if {_type} = "Sine":
+            set {_v3} to {_vp} * abs({_a}) * sin(360/({_period})*((loop-value*{_density} - 1)/9))
+            set {_v4} to {_vp2} * abs({_a}) * cos(360/({_period})*((loop-value*{_density} - 1)/9))
+        else:
+            set {_v3} to {_vp} * abs({_a}) * cos(360/({_period})*((loop-value*{_density} - 1)/9))
+            set {_v4} to {_vp2} * abs({_a}) * sin(360/({_period})*((loop-value*{_density} - 1)/9))
+
+        set standard length of {_v} to loop-value*{_density}
+        set {_loc} to {_l} ~ ({_v} + {_v3} + {_v4})
+        if {alt-particles::*} contains "%{_p}%":
+            make {@pamount} of {_p} using {_do} at {_loc} with extra {@pd} with force
+        else:
+            make {@pamount} of {_p} at {_loc} with extra {@pd} with force
+    
+
+function Hitbubble(l: location, d: number, radius: number, list: entities = {l::*}, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+    loop entities in radius {_radius} of {_l}:
+        if {_list::*} does not contain loop-entity:
+            damage loop-entity by {_d}
+
+function Line(l: location, p: particle, d: number, density: number = 1, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+    set {_l2} to location {_d} meters infront of {_l}
+    set {_v} to vector between {_l} and {_l2}
+    if {_r} != vector(0,0,0):
+        set {_v} to {_r}
+    
+    set standard length of {_v} to 0.5*{_density}
+    set {_loc} to {_l}
+    loop ({_d})*2/{_density} times:
+
+        if {alt-particles::*} contains "%{_p}%":
+            make {@pamount} of {_p} using {_do} at {_loc} with extra {@pd} with force
+        else:
+            make {@pamount} of {_p} at {_loc} with extra {@pd} with force
+        set {_loc} to {_loc} ~ {_v}
+        if {_delay} != 0:
+            wait ("%{_delay}% seconds" parsed as a timespan)
+
+function LineF(l: location, cf: objects, p: objects, d: number, density: number = 1, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+    set {_l2} to location {_d} meters infront of {_l}
+    set {_v} to vector between {_l} and {_l2}
+    if {_r} != vector(0,0,0):
+        set {_v} to {_r}
+    
+    set standard length of {_v} to 0.5*{_density}
+    set {_loc} to {_l}
+    loop ({_d})*2/{_density} times:
+        set {_na} to 0
+        if {_delay} != 0:
+            wait ("%{_delay}% seconds" parsed as a timespan)
+        # Substitute for the particle
+        loop {_cf::*}:
+            CallComposite(loop-value-2, {_p::*}, {_loc}, {_delay}, {_do})
+            add 1 to {_na}
+        # Substite for the particle
+        set {_loc} to {_loc} ~ {_v}
+
+
+function Log(l: location, p: particle, type: string, d: number, vs: number, density: number = 0.25, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+    set {_p} to "%{_p}%" parsed as a particle
+    set {_l2} to location {_d} meters infront of {_l}
+    set {_v} to vector between {_l} and {_l2}
+    if {_r} != vector(0,0,0):
+        set {_v} to {_r}
+    set standard length of {_v} to 1
+    set {_vp} to vector {_v}
+    set {_lr} to {_l}
+    subtract 90 from pitch of {_vp}
+    if {_vs} < 0:
+        rotate {_vp} around {_v} by -180
+    loop ({_d}*2/{_density}) times:
+        if {_delay} != 0:
+            wait ("%{_delay}% seconds" parsed as a timespan)
+        if {_type} = "Logarithm":
+            set {_a} to abs({_vs}*ln(loop-value/2*{_density}+0.3))
+            set standard length of {_vp} to abs({_a})
+        else:
+            set standard length of {_vp} to abs({_vs}*exp(loop-value*{_density}/2))
+        set standard length of {_v} to loop-value/2*{_density}
+        set {_v3} to {_v} + {_vp}
+        set {_loc} to {_lr} ~ ({_v3})
+        if {alt-particles::*} contains "%{_p}%":
+            make {@pamount} of {_p} using {_do} at {_loc} with extra {@pd} with force
+        else:
+            make {@pamount} of {_p} at {_loc} with extra {@pd} with force
+    
+
+function Polygon(l: location, particle: particle, radius: number, points: number, theta: number, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+
+    set {_pivot} to location 1 meter infront of {_l}
+    set {_v} to vector between {_l} and {_pivot}
+    if {_r} != vector(0,0,0):
+        set {_v} to {_r}
+    set {_perpendicular} to {_v}
+    add -90 to pitch of {_perpendicular}
+
+    set standard length of {_v} to 1
+    set standard length of {_perpendicular} to {_radius}
+    rotate {_perpendicular} around {_v} by {_theta}
+    set {_prev} to {_l} ~ {_perpendicular}
+
+    set {_n} to 0
+    while {_n} < {_points}:
+        rotate {_perpendicular} around {_v} by (360/{_points})
+        set {_temp} to {_perpendicular}
+        rotate {_temp} around {_v} by (360/{_points})
+
+        set {_prev} to {_l} ~ {_perpendicular}
+        set {_next} to {_l} ~ {_temp}
+
+        set {_v3} to vector between {_prev} and {_next}
+
+        set {_d} to distance between {_prev} and {_next}
+        Line({_prev}, {_particle}, {_d}, 1, {_v3}, {_delay}, {_do})
+        add 1 to {_n}
+
+
+
+
+function SineF(l: location, cf: objects, p: objects, type: string, vertical: boolean = true, d: number, a: number, period: number, density: number, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+    set {_l2} to location {_d} meters infront of {_l}
+    set {_v} to vector between {_l} and {_l2}
+    if {_r} != vector(0,0,0):
+        set {_v} to {_r}
+    set standard length of {_v} to 1
+    set {_vp} to vector {_v}
+    subtract 90 from pitch of {_vp}
+    set standard length of {_vp} to 1
+    if {_a} < 0:
+        rotate {_vp} around {_v} by -180
+    if {_vertical} != true:
+        rotate {_vp} around {_v} by -90
+    loop ({_d}/{_density}) times:
+        if {_delay} != 0:
+            wait ("%{_delay}% seconds" parsed as a timespan)
+        if {_type} = "Sine":
+            set {_v3} to {_vp} * abs({_a}) * sin(360/({_period})*((loop-value*{_density} - 1)/9))
+        else:
+            set {_v3} to {_vp} * abs({_a}) * cos(360/({_period})*((loop-value*{_density} - 1)/9))
+
+        set standard length of {_v} to loop-value*{_density}
+        set {_loc} to {_l} ~ {_v} + {_v3}
+        # Substitute for the particle
+        loop {_cf::*}:
+            CallComposite(loop-value-2, {_p::*}, {_loc}, {_delay}, {_do})
+            add 1 to {_na}
+        # Substite for the particle    
+
+
+
+function SineWave(l: location, p: particle, type: string, vertical: boolean, d: number, a: number, period: number, density: number, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+    set {_l2} to location {_d} meters infront of {_l}
+    set {_v} to vector between {_l} and {_l2}
+    if {_r} != vector(0,0,0):
+        set {_v} to {_r}
+    set standard length of {_v} to 1
+    set {_vp} to vector {_v}
+    subtract 90 from pitch of {_vp}
+    set standard length of {_vp} to 1
+    if {_a} < 0:
+        rotate {_vp} around {_v} by -180
+    if {_vertical} != true:
+        rotate {_vp} around {_v} by -90
+    loop ({_d}/{_density}) times:
+        if {_delay} != 0:
+            wait ("%{_delay}% seconds" parsed as a timespan)
+        if {_type} = "Sine":
+            set {_v3} to {_vp} * abs({_a}) * sin(360/({_period})*((loop-value*{_density} - 1)/9))
+        else:
+            set {_v3} to {_vp} * abs({_a}) * cos(360/({_period})*((loop-value*{_density} - 1)/9))
+
+        set standard length of {_v} to loop-value*{_density}
+        set {_loc} to {_l} ~ ({_v} + {_v3})
+        if {alt-particles::*} contains "%{_p}%":
+            make {@pamount} of {_p} using {_do} at {_loc} with extra {@pd} with force
+        else:
+            make {@pamount} of {_p} at {_loc} with extra {@pd} with force
+    
+
+
+ 
+function CallComposite(name: string, p: objects, l: location, d: number = 0, perp: vector = vector(0,0,0), do: object = null):
+    if {_name} = "Line":
+        Line({_l}, {_p::1}, {_p::2}, 1, {_perp}, {_p::3}, {_do})
+    else if {_name} = "Hitbubble":
+        Hitbubble({_l}, {_p::1}, {_p::2})
+    else if {_name} = "Log":
+        Log({_l}, {_p::1}, {_p::2}, {_p::3}, {_p::4}, {_p::5}, {_perp}, {_p::6}, {_do})
+    else if {_name} = "Polygon":
+        Polygon({_l}, {_p::1}, {_p::2}, {_p::3}, {_p::4}, {_perp}, {_p::5}, {_do})
+    else if {_name} = "Helix":
+        Helix({_l}, {_p::1}, {_p::2}, {_p::3}, {_p::4}, {_p::5}, {_perp}, {_p::6}, {_do})
+    else if {_name} = "Circle":
+        Circle({_l}, {_p::1}, {_p::2}, {_p::3}, {_perp}, {_p::4}, {_do})
+    else if {_name} = "Bolt":
+        Bolt({_l}, {_p::1}, {_p::2}, {_p::3}, {_p::4}, {_p::5}, {_perp}, {_p::6}, {_do})
+    else if {_name} = "SineWave":
+        SineWave({_l}, {_p::1}, {_p::2}, {_p::3}, {_p::4}, {_p::5}, {_p::6}, {_p::7}, {_perp}, {_p::8}, {_do})
+    else:
+        set {_loc} to "location(%x pos of {_l}%, %y pos of {_l}%, %z pos of {_l}%, event-world, %yaw of {_l}%, %pitch of {_l}%)"
+        parse effect "%{_name}%(%{_loc}%)"
+
+    # Composite Functions
+    #else if {_name} = "LineF":
+    #    LineF({_l}, {_p::1}, {_p::2}, {_p::3}, {_p::4})
+    #else if {_name} = "SineF":
+    #    SineF({_l}, {_p::1}, {_p::2}, {_p::3}, {_p::4}, {_p::5}, {_p::6}, {_p::7})
+    #else if {_name} = "CircleF":
+    #    CircleF({_l}, {_p::1}, {_p::2}, {_p::3}, {_p::4}, {_p::5})
+    #else if {_name} = "CircleFS":
+    #    CircleFS({_l}, {_p::1}, {_p::2}, {_p::3}, {_p::4}, {_p::5})
+function rsc(x: number, r: number) :: number:
+    return sqrt({_r}^2 - {_x}^2)
+
+function Sphere(l: location, p: particle, radius: number, density: number, r: vector = vector(0,0,0), delay: number = 0, do: object = null):
+    set {_a} to -1 * {_radius}
+    set {_l} to location {_radius} meters below {_l}
+    set {_t} to 0
+    while {_t} < 2 * {_radius} + {_density}:
+        set {_loc} to location {_t} meters above {_l}
+        Circle({_loc}, {_p}, rsc(-1*{_radius} + {_t}, {_radius}), {_density}*2, {_r}, {_delay}, {_do})
+        add {_density} to {_t}
+
